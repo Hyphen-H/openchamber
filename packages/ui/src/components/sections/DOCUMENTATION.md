@@ -210,7 +210,7 @@ stored credential. A `failed` server without OAuth keeps Connect.
 
 The Integrations catalog keeps its sign-in row and labels its button "Sign in
 again" for `failed`, gated on the entry's `auth: 'oauth'` so a failed
-token-based entry gets no empty block. It starts the sign-in by itself after
+token-based entry gets no sign-in block. It starts the sign-in by itself after
 an install only for `needs_auth`: a first connect that failed for another
 reason waits for a click.
 
