@@ -1148,7 +1148,9 @@ export class ElectronSshManager {
 
   // `passwordAccepted` is reported on its own because /api/system/info is
   // public: a server answers it whether or not the password fits.
-  // The remote shell's password goes to curl on stdin, never into argv.
+  // `environmentPassword` offers the OPENCHAMBER_UI_PASSWORD of the remote
+  // login shell instead, the one `serve` gives a server started without a
+  // password of its own. It is read from stdin, so it never reaches argv.
   async probeRemoteServer(parsed, controlPath, port, openchamberPassword, { environmentPassword = false } = {}) {
     const authRequest = `curl -sS --max-time 3 -o /dev/null -w '%{http_code}' -c "$COOKIE_FILE"`;
     let authCommand = null;
@@ -1319,7 +1321,9 @@ export class ElectronSshManager {
     }
 
     for (const server of servers) {
-      // Without its own password the instance's servers get the remote shell's OPENCHAMBER_UI_PASSWORD.
+      // Without a password of its own the instance starts servers with the one
+      // the remote login shell sets, if any, so a protected server is checked
+      // against that one.
       const checksPassword = Boolean(password) || server.passwordProtected === true;
       let probe;
       try {
@@ -1329,9 +1333,10 @@ export class ElectronSshManager {
         this.appendLogWithLevel(instance.id, 'INFO', `Not reusing the server on remote port ${server.port}: ${sanitizeProcessDiagnostic(error instanceof Error ? error.message : String(error), password)}`);
         continue;
       }
-      // A server that answers is not yet ours: it has to take this instance's
-      // password, or have none when the instance has none. Anything else belongs
-      // to someone else and is neither reused nor stopped.
+      // A server that answers is not yet ours: it has to take the password a
+      // server started now would get, or have none when the instance has none
+      // and the server is not protected. Anything else belongs to someone else
+      // and is neither reused nor stopped.
       const passwordFits = checksPassword ? probe.passwordAccepted : true;
       if (!passwordFits) {
         this.appendLogWithLevel(instance.id, 'INFO', `Not reusing the server on remote port ${server.port}: it does not take this instance's UI password (auth status ${probe.authStatus})`);
