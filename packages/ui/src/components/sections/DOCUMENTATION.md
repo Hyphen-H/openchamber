@@ -188,8 +188,22 @@ complete flow the Providers page runs. `mcp/McpOAuthSignIn.tsx` looks the
 integration up by server name in the server's directory (the registration is
 per Location) and mounts the shared `providers/ProviderOAuthMethods.tsx`
 with that directory. It appears in the status card while the server reports
-`needs_auth`; once the credential is stored, the page connects the server
-again, which is what moves it out of `needs_auth`.
+`needs_auth` or `failed`; once the credential is stored, the page connects
+the server again, which is what moves it out of either state.
+
+### Why a failed OAuth server offers sign-in
+
+When the service rejects the stored token (a refresh answered with 403
+`access_denied`), OpenCode reports the server `failed`, not `needs_auth`, and
+keeps the rejected credential. Connect and Test connection only retry it. A
+fresh sign-in starts with no tokens (it reuses only the earlier client
+registration) and its new credential is the one the next connect uses, so
+offering the sign-in is the whole recovery; no sign-out call is needed. A
+`failed` server without an OAuth integration renders no sign-in. The
+Integrations catalog uses the entry's `auth: 'oauth'` for the same gate, so a
+failed token-based entry gets no empty sign-in block. The catalog starts the
+sign-in by itself after an install only for `needs_auth`: a first connect
+that failed for another reason waits for a click.
 
 ### Claude sign-in on Usage
 

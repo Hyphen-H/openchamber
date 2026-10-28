@@ -1016,7 +1016,7 @@ export const McpPage: React.FC = () => {
 
   /**
    * OpenCode has stored the OAuth credential; the server itself is still in
-   * `needs_auth` until it is connected again with that credential.
+   * `needs_auth` or `failed` until it is connected again with that credential.
    */
   const handleOAuthConnected = async () => {
     if (!selectedMcpName) return;
@@ -1229,7 +1229,10 @@ export const McpPage: React.FC = () => {
                   </p>
                 </div>
 
-                {effectiveStatusName === 'needs_auth' && selectedMcpName && (
+                {/* A `failed` OAuth server is often one whose stored token the
+                    service rejected; a fresh sign-in replaces it, and Connect
+                    alone would only retry it. Servers without OAuth render nothing. */}
+                {(effectiveStatusName === 'needs_auth' || effectiveStatusName === 'failed') && selectedMcpName && (
                   <McpOAuthSignIn
                     serverName={selectedMcpName}
                     directory={currentDirectory}
