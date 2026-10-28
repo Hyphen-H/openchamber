@@ -933,6 +933,7 @@ export function IntegrationsCatalogView(): React.ReactNode {
                 serverName={entry.id}
                 directory={currentDirectory}
                 autoStart={runtime === 'needs_auth' && pendingSignInId === entry.id}
+                connectLabel={runtime === 'failed' ? t('settings.mcp.page.actions.signInAgain') : undefined}
                 onConnected={() => { void useMcpStore.getState().connect(entry.id, currentDirectory); }}
               />
             </div>

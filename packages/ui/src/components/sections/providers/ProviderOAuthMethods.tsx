@@ -43,6 +43,10 @@ interface ProviderOAuthMethodsProps {
   autoStart?: boolean;
   /** Off when a surrounding card already names the method. */
   showMethodLabels?: boolean;
+  /** The start button's text, when the surface has a more specific word than "Connect". */
+  connectLabel?: string;
+  /** Off when the caller starts the sign-in from its own button; only the attempt's progress shows. */
+  showStartButton?: boolean;
 }
 
 type Flow =
@@ -83,6 +87,8 @@ export const ProviderOAuthMethods: React.FC<ProviderOAuthMethodsProps> = ({
   className,
   autoStart = false,
   showMethodLabels = true,
+  connectLabel,
+  showStartButton = true,
 }) => {
   const { t } = useI18n();
   // Picked once per directory prop: OpenCode keeps an OAuth attempt in the
@@ -365,18 +371,20 @@ export const ProviderOAuthMethods: React.FC<ProviderOAuthMethodsProps> = ({
 
         return (
           <div key={method.id} className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              {showMethodLabels ? <div className="typography-ui-label text-foreground">{method.label}</div> : null}
-              <Button
-                variant="outline"
-                size="xs"
-                className="!font-normal shrink-0"
-                onClick={() => beginConnect(method)}
-                disabled={busy}
-              >
-                {t('settings.providers.page.actions.connect')}
-              </Button>
-            </div>
+            {showStartButton ? (
+              <div className="flex items-center justify-between gap-2">
+                {showMethodLabels ? <div className="typography-ui-label text-foreground">{method.label}</div> : null}
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="!font-normal shrink-0"
+                  onClick={() => beginConnect(method)}
+                  disabled={busy}
+                >
+                  {connectLabel ?? t('settings.providers.page.actions.connect')}
+                </Button>
+              </div>
+            ) : null}
 
             {isActive && flow.phase === 'prompting' && (
               <div className="space-y-3">

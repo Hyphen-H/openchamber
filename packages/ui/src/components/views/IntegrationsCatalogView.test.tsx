@@ -221,6 +221,7 @@ test('a failed OAuth server offers a fresh sign-in on its detail page', async ()
     await act(async () => linearCard.click());
     await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
     expect(browser.document.body.textContent?.includes('Sign in to Linear')).toBe(true);
+    expect(browser.document.body.textContent?.includes('Sign in again')).toBe(true);
     // The line about a sign-in in progress belongs to `needs_auth` only.
     expect(browser.document.body.textContent?.includes('Waiting for sign-in')).toBe(false);
   } finally {
