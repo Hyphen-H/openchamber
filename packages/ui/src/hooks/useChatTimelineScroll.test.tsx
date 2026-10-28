@@ -4,6 +4,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import { Window } from 'happy-dom';
 import { useChatTimelineScroll, type TimelineListHandle } from './useChatTimelineScroll';
 import { requestMessageFocus, releaseMessageFocusOutside } from '@/lib/router/messageFocus';
+import { dispatchPageWaiting } from '@/components/chat/lib/scroll/timelineScrollIntent';
+import { useUIStore } from '@/stores/useUIStore';
 
 let root: Root;
 let node: HTMLDivElement;
@@ -67,6 +69,8 @@ beforeEach(() => {
         document: dom.document,
         HTMLElement: dom.HTMLElement,
         Element: dom.Element,
+        CustomEvent: dom.CustomEvent,
+        WheelEvent: dom.WheelEvent,
         localStorage: dom.localStorage,
         sessionStorage: dom.sessionStorage,
         getComputedStyle: dom.getComputedStyle.bind(dom),
@@ -143,4 +147,49 @@ test('does not start a history search from a linked-message check completed afte
     await act(async () => complete('exists'));
     expect(loads).toBe(0);
     expect(missing).toBe(0);
+});
+
+// A waiting page whose block sits at content offsets 1700 to 1800, below the
+// 500 px viewport; scroll commands are recorded.
+const waitingPage = () => {
+    const block = document.createElement('div');
+    block.dataset.waitingPage = 'page-1';
+    node.append(block);
+    Object.defineProperty(block, 'getBoundingClientRect', { value: () => ({ top: 1700 - node.scrollTop, bottom: 1800 - node.scrollTop }) });
+    const targets: number[] = [];
+    Object.defineProperty(node, 'scrollTo', { value: (options: ScrollToOptions) => { targets.push(options.top ?? Number.NaN); } });
+    return { block, targets };
+};
+
+test('brings a page waiting for an answer into view for a reader nothing released', async () => {
+    await render('visible'); await frame();
+    node.scrollTop = 300;
+    const { block, targets } = waitingPage();
+    act(() => dispatchPageWaiting(block));
+    await frame();
+    expect(targets).toEqual([1300]);
+});
+
+test('leaves a reader with auto-follow off where they are when a page waits for an answer', async () => {
+    useUIStore.getState().setStreamingAutoFollowEnabled(false);
+    try {
+        await render('visible'); await frame();
+        node.scrollTop = 300;
+        const { block, targets } = waitingPage();
+        act(() => dispatchPageWaiting(block));
+        await frame();
+        expect(targets).toEqual([]);
+    } finally {
+        useUIStore.getState().setStreamingAutoFollowEnabled(true);
+    }
+});
+
+test('leaves a reader who scrolled up away from a page waiting for an answer', async () => {
+    await render('visible'); await frame();
+    node.scrollTop = 300;
+    act(() => { node.dispatchEvent(new WheelEvent('wheel', { deltaY: -100 })); });
+    const { block, targets } = waitingPage();
+    act(() => dispatchPageWaiting(block));
+    await frame();
+    expect(targets).toEqual([]);
 });
