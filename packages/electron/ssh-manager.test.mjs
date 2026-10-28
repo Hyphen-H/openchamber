@@ -805,6 +805,16 @@ printf '4321\\n'`);
       expect(host.started).toEqual([first.remotePort]);
     });
 
+    test('a server protected by another password than the remote login shell sets stays someone else\'s', async () => {
+      const { host, manager } = createRemoteHost([{ port: 30001, version: '1.1.0', password: 'someone-else' }]);
+      host.environmentPassword = 'profile-secret';
+
+      const result = await manager.ensureRemoteServer(managed(), parsed, '/unused.sock');
+
+      expect(host.stopped).toEqual([]);
+      expect(result.remotePort).not.toBe(30001);
+    });
+
     test('reuses the server that accepts the instance password', async () => {
       const { host, manager } = createRemoteHost([
         { port: 30001, version: '1.2.3', password: 'someone-else' },
