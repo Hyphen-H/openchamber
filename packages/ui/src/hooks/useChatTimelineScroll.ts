@@ -561,6 +561,9 @@ export const useChatTimelineScroll = ({
     }, [hideScrollButton]);
     const jumpToEnd = React.useCallback((mode: 'instant' | 'smooth', passStops: boolean) => {
         resumeFollow(passStops);
+        // A page still settling into view would pull the reader back from
+        // the end they asked for.
+        pageRevealRef.current = null;
         void listRef.current?.scrollToEnd({ animated: mode === 'smooth' });
         // While a stream is growing the content, a single jump lands on the
         // end as of that moment and the list's own follow may not have

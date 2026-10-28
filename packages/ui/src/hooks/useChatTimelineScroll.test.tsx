@@ -149,13 +149,13 @@ test('does not start a history search from a linked-message check completed afte
     expect(missing).toBe(0);
 });
 
-// A waiting page whose block sits at content offsets 1700 to 1800, below the
-// 500 px viewport; scroll commands are recorded.
-const waitingPage = () => {
+// A waiting page whose block sits at content offsets `top` to 1800, below
+// the 500 px viewport; scroll commands are recorded.
+const waitingPage = (top = 1700) => {
     const block = document.createElement('div');
     block.dataset.waitingPage = 'page-1';
     node.append(block);
-    Object.defineProperty(block, 'getBoundingClientRect', { value: () => ({ top: 1700 - node.scrollTop, bottom: 1800 - node.scrollTop }) });
+    Object.defineProperty(block, 'getBoundingClientRect', { value: () => ({ top: top - node.scrollTop, bottom: 1800 - node.scrollTop }) });
     const targets: number[] = [];
     Object.defineProperty(node, 'scrollTo', { value: (options: ScrollToOptions) => { targets.push(options.top ?? Number.NaN); } });
     return { block, targets };
@@ -168,6 +168,19 @@ test('brings a page waiting for an answer into view for a reader nothing release
     act(() => dispatchPageWaiting(block));
     await frame();
     expect(targets).toEqual([1300]);
+});
+
+test('a return to the end ends the reveal of a page taller than the screen', async () => {
+    await render('visible'); await frame();
+    node.scrollTop = 300;
+    const { block, targets } = waitingPage(1100);
+    act(() => dispatchPageWaiting(block));
+    await frame();
+    expect(targets.length).toBe(1);
+    act(() => scroll.goToBottom());
+    act(() => dispatchPageWaiting(block));
+    await frame();
+    expect(targets.length).toBe(1);
 });
 
 test('leaves a reader with auto-follow off where they are when a page waits for an answer', async () => {
