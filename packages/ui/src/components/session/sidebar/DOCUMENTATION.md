@@ -90,7 +90,8 @@ labels) from the index.
 
 Web and desktop show managed Chats, then Pinned and In work, then the projects
 or the list by time (see One view). There is no Recent zone any more (removed
-2026-10): In work holds the works in progress, and the list by time answers
+2026-10): In work holds the works in progress, and those sessions also remain
+under their project by default. The list by time answers
 "what was I doing" across projects. Chats use
 their shared managed root for folders and never expose worktree actions. Project
 display can be all projects or one selected project; Chats, Pinned and In work

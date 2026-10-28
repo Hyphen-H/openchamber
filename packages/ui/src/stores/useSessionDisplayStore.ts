@@ -33,7 +33,7 @@ type SessionDisplayStore = {
    */
   sidebarGrouping: ListSessionGrouping | null;
   setSidebarGrouping: (grouping: ListSessionGrouping) => void;
-  /** A work in the In work block also stays in its project or folder; off by default. */
+  /** A work in the In work block also stays in its project or folder. */
   keepWorkInPlace: boolean;
   setKeepWorkInPlace: (keep: boolean) => void;
   /** Local display preference; motion remains opt-in. */
@@ -118,6 +118,11 @@ export const migrateSessionDisplayState = (
     // drew two lines, so a phone on List keeps them; Tree keeps its choice.
     state.detailedZoneRows = true;
   }
+  if (version < 13) {
+    // In work is a cross-project overview. Keep its sessions in their project
+    // too, so enabling the feature cannot make project sessions appear to vanish.
+    state.keepWorkInPlace = true;
+  }
   return state;
 };
 
@@ -148,7 +153,7 @@ export const useSessionDisplayStore = create<SessionDisplayStore>()(
       setListSessionGrouping: (grouping) => set({ listSessionGrouping: grouping }),
       sidebarGrouping: null,
       setSidebarGrouping: (grouping) => set({ sidebarGrouping: grouping }),
-      keepWorkInPlace: false,
+      keepWorkInPlace: true,
       setKeepWorkInPlace: (keep) => set({ keepWorkInPlace: keep }),
       showChatsSection: true,
       showWorkSection: true,
@@ -173,7 +178,7 @@ export const useSessionDisplayStore = create<SessionDisplayStore>()(
     }),
     {
       name: 'session-display-mode',
-      version: 12,
+      version: 13,
       // v1→v2 adds projectSortOrder using the canonical manual ordering.
       // v2→v3 replaces the previously shipped recent default with manual.
       // v3→v4 removes displayMode (single sidebar row layout).
@@ -184,6 +189,7 @@ export const useSessionDisplayStore = create<SessionDisplayStore>()(
       // v8→v9 added worktreeSortOrder; v10→v11 drops it again.
       // v9→v10 drops showRecentSection (Recent is gone).
       // v11→v12 turns two-line rows on for a phone that was on List.
+      // v12→v13 keeps In work sessions in their project as well as the overview.
       migrate: migrateSessionDisplayState,
     },
   ),

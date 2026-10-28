@@ -26,6 +26,10 @@ describe('useSessionDisplayStore detailed rows', () => {
     expect(migrateSessionDisplayState({ sidebarViewMode: 'projects', detailedZoneRows: false }, 11, 'mobile').detailedZoneRows).toBe(false);
     expect(migrateSessionDisplayState({ sidebarViewMode: 'timeline', detailedZoneRows: false }, 11, 'desktop').detailedZoneRows).toBe(false);
   });
+
+  test('v13 keeps In work sessions under their project too', () => {
+    expect(migrateSessionDisplayState({ keepWorkInPlace: false }, 12).keepWorkInPlace).toBe(true);
+  });
 });
 
 describe('useSessionDisplayStore project sorting', () => {
@@ -121,7 +125,7 @@ describe('useSessionDisplayStore animated activity', () => {
       await useSessionDisplayStore.persist.rehydrate();
       expect(useSessionDisplayStore.getState().animatedActivityIndicators).toBe(false);
       expect(useSessionDisplayStore.getState().sidebarViewMode).toBe('timeline');
-      expect(useSessionDisplayStore.persist.getOptions().version).toBe(12);
+      expect(useSessionDisplayStore.persist.getOptions().version).toBe(13);
       useSessionDisplayStore.getState().setAnimatedActivityIndicators(true);
       const enabledSnapshot = stored;
       useSessionDisplayStore.setState({ animatedActivityIndicators: false });
